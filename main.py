@@ -18,6 +18,9 @@ from datetime import datetime
 # STABILITY: ANDROID PERMISSIONS HANDLER
 # -----------------------------------------------------------------------------
 def request_android_permissions():
+    """
+    Requests permissions on Android at runtime to prevent 'insta-crashes'.
+    """
     if platform == 'android':
         from android.permissions import request_permissions, Permission
         request_permissions([
@@ -29,7 +32,7 @@ def request_android_permissions():
         ])
 
 # -----------------------------------------------------------------------------
-# KV DESIGN STRING (The "Secret Sauce" for 100% Fidelity)
+# KV DESIGN STRING (Premium Dark Theme)
 # -----------------------------------------------------------------------------
 KV = """
 #:import get_color_from_hex kivy.utils.get_color_from_hex
@@ -68,7 +71,7 @@ KV = """
             height: dp(100)
             
         Label:
-            text: "Fine-tune your profile for clinical precision."
+            text: "Personalized pacing for clinical precision."
             font_size: '14sp'
             color: get_color_from_hex("#6272A4")
             halign: 'center'
@@ -85,7 +88,7 @@ KV = """
                 halign: 'left'
             TextInput:
                 id: name_input
-                text: "John Doe"
+                text: "Ryan"
                 multiline: False
                 background_color: (0.1, 0.1, 0.1, 1)
                 foreground_color: (1, 1, 1, 1)
@@ -121,7 +124,7 @@ KV = """
             size: self.size
 
     FloatLayout:
-        # Greeting
+        # Greeting Top Left
         Label:
             text: app.get_greeting() + ", " + app.user_name
             font_size: '18sp'
@@ -150,10 +153,27 @@ KV = """
             color: get_color_from_hex("#6272A4")
             pos_hint: {'center_x': 0.5, 'center_y': 0.57}
 
+        # Status Badge
+        BoxLayout:
+            size_hint: (None, None)
+            size: dp(140), dp(34)
+            pos_hint: {'center_x': 0.5, 'center_y': 0.46}
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#50FA7B") if app.current_bpm <= 110 else get_color_from_hex("#FF5555")
+                Line:
+                    width: dp(1.2)
+                    rounded_rectangle: (self.x, self.y, self.width, self.height, dp(17))
+            Label:
+                text: "PACING OPTIMAL" if app.current_bpm <= 110 else "HR ELEVATED"
+                font_size: '10sp'
+                bold: True
+                color: get_color_from_hex("#50FA7B") if app.current_bpm <= 110 else get_color_from_hex("#FF5555")
+
         # Live Graph Card
         StyledCard:
-            size_hint: (0.9, 0.2)
-            pos_hint: {'center_x': 0.5, 'y': 0.35}
+            size_hint: (0.9, 0.18)
+            pos_hint: {'center_x': 0.5, 'y': 0.28}
             padding: dp(10)
             Label:
                 text: "LIVE CARDIAC RHYTHM"
@@ -168,7 +188,7 @@ KV = """
         # Energy Budget Panel
         StyledCard:
             size_hint: (0.9, 0.14)
-            pos_hint: {'center_x': 0.5, 'y': 0.18}
+            pos_hint: {'center_x': 0.5, 'y': 0.12}
             
             BoxLayout:
                 orientation: 'horizontal'
@@ -210,11 +230,6 @@ KV = """
                 color: get_color_from_hex("#6272A4")
                 background_color: (0,0,0,0)
                 on_press: app.root.current = 'summary'
-            Button:
-                text: "TOOLS"
-                color: get_color_from_hex("#6272A4")
-                background_color: (0,0,0,0)
-                on_press: app.root.current = 'dev'
             Button:
                 text: "PROFILE"
                 color: get_color_from_hex("#6272A4")
@@ -323,56 +338,6 @@ KV = """
             background_color: get_color_from_hex("#BD93F9")
             background_normal: ''
             on_press: app.root.current = 'monitor'
-
-<DevToolsScreen>:
-    canvas.before:
-        Color:
-            rgba: get_color_from_hex("#121411")
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    BoxLayout:
-        orientation: 'vertical'
-        padding: dp(30)
-        spacing: dp(15)
-        
-        Label:
-            text: "Developer Tools"
-            font_size: '28sp'
-            bold: True
-            color: get_color_from_hex("#BD93F9")
-            size_hint_y: None
-            height: dp(60)
-
-        StyledCard:
-            BoxLayout:
-                orientation: 'horizontal'
-                Label:
-                    text: "Simulator Mode"
-                Switch:
-                    active: True
-
-        Label:
-            text: "Scenarios"
-            font_size: '14sp'
-            color: get_color_from_hex("#6272A4")
-
-        Button:
-            text: "POTS Spike"
-            size_hint_y: None
-            height: dp(50)
-            on_press: app.target_bpm = 135
-        Button:
-            text: "Recovery"
-            size_hint_y: None
-            height: dp(50)
-            on_press: app.target_bpm = 70
-        
-        Button:
-            text: "CLOSE"
-            size_hint_y: None
-            height: dp(60)
-            on_press: app.root.current = 'monitor'
 """
 
 # -----------------------------------------------------------------------------
@@ -388,8 +353,10 @@ class HeartWidget(FloatLayout):
         self.size_hint = (None, None)
         self.size = (260, 260)
         with self.canvas.before:
+            # Outer glow
             self.ring_color = Color(*get_color_from_hex("#BD93F9")[:3], 0.1)
             self.ring = Ellipse(pos=self.pos, size=self.size)
+            # Inner pulse
             self.core_color = Color(*get_color_from_hex("#FF79C6")[:3], 0.8)
             self.ellipse = Ellipse(pos=(self.x + 40, self.y + 40), size=(180, 180))
         
@@ -461,27 +428,24 @@ class SummaryScreen(Screen):
 class SettingsScreen(Screen):
     pass
 
-class DevToolsScreen(Screen):
-    pass
-
 class PacePointApp(App):
     user_name = StringProperty("User")
     current_bpm = NumericProperty(74)
-    target_bpm = NumericProperty(74)
     resting_hr = NumericProperty(60)
     energy_spent = NumericProperty(0.0)
     daily_budget = NumericProperty(20.0)
     hr_history = ListProperty([72, 74, 73, 75, 78, 80, 76, 74, 72, 70])
 
     def build(self):
+        # Prevent crash: request permissions on startup
         request_android_permissions()
+        
         Builder.load_string(KV)
         self.sm = ScreenManager(transition=FadeTransition())
         self.sm.add_widget(OnboardingScreen(name='onboarding'))
         self.sm.add_widget(MonitorScreen(name='monitor'))
         self.sm.add_widget(SummaryScreen(name='summary'))
         self.sm.add_widget(SettingsScreen(name='settings'))
-        self.sm.add_widget(DevToolsScreen(name='dev'))
         
         Clock.schedule_interval(self.update_loop, 1.0)
         return self.sm
@@ -493,13 +457,17 @@ class PacePointApp(App):
         else: return "Good evening"
 
     def update_loop(self, dt):
-        if self.current_bpm < self.target_bpm: self.current_bpm += 1
-        elif self.current_bpm > self.target_bpm: self.current_bpm -= 1
+        # Simulator logic for testing
+        target = 74 if self.energy_spent < 15 else 115 # Mock a spike
+        if self.current_bpm < target: self.current_bpm += 1
+        elif self.current_bpm > target: self.current_bpm -= 1
         self.current_bpm += random.uniform(-1, 1)
         
+        # Update history for graph
         self.hr_history.append(self.current_bpm)
-        if len(self.hr_history) > 30: self.hr_history.pop(0)
+        if len(self.hr_history) > 40: self.hr_history.pop(0)
         
+        # Pace Engine Logic
         k = 2.0 if self.current_bpm > 110 else 1.0
         self.energy_spent += k * (self.current_bpm / self.resting_hr) * (dt / 60.0)
 
