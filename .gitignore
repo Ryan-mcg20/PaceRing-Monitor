@@ -1,0 +1,21 @@
+# PacePoint .gitignore
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Kivy / Buildozer folders
+.buildozer/
+bin/
+*.spec
+
+# Local environment
+.venv/
+env/
+venv/
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
