@@ -18,7 +18,7 @@ source.include_exts = py,png,jpg,kv,atlas,json
 version = 1.0.0
 
 # (list) Application requirements
-# CRITICAL: bleak for BLE, async_gui for event loop stability
+# REMOVED pyblemulator. ADDED bleak and async_gui for Android BLE compatibility.
 requirements = python3, kivy, bleak, async_gui, android
 
 # (str) Supported orientation
